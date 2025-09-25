@@ -32,5 +32,6 @@ if st.button("Summarize"):
         docs = [Document(page_content=chunk) for chunk in chunks]
         chain = load_summarize_chain(llm, chain_type="map_reduce")
         summary = chain.run(docs)
-        st.subheader("📝 Summary:")
+        st.subheader("Summary:")
         st.success(summary)
+
