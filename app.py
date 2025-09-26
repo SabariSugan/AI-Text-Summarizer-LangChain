@@ -1,88 +1,58 @@
 import streamlit as st
 import os
 from dotenv import load_dotenv
-from langchain.llms.base import LLM
-from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
+from langchain.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 import requests
-from transformers import AutoTokenizer
 
-# Load environment variables
+# Load env
 load_dotenv()
 HF_API_KEY = os.getenv("HF_API_KEY")
 API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
 HEADERS = {"Authorization": f"Bearer {HF_API_KEY}"}
 
-# Custom Hugging Face API LLM with tokenizer
-class HF_API_LLM(LLM):
-    def __init__(self):
-        self.tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
-
-    def _call(self, prompt: str, stop=None) -> str:
-        payload = {"inputs": prompt}
-        response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=60)
-        try:
-            response.raise_for_status()
-            return response.json()[0]["summary_text"]
-        except Exception as e:
-            return f"Error: {e}"
-
-    def get_num_tokens(self, text: str) -> int:
-        return len(self.tokenizer.encode(text))
-
-    @property
-    def _identifying_params(self):
-        return {"model": "facebook/bart-large-cnn"}
-
-    @property
-    def _llm_type(self):
-        return "hf_api"
-
-# Initialize LLM
-llm = HF_API_LLM()
-
-# Streamlit setup
 st.set_page_config(page_title="AI Summarizer", layout="wide")
 st.title("AI Summarizer")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-def deduplicate_text(text):
-    sentences = text.split(". ")
-    seen = set()
-    unique_sentences = []
-    for s in sentences:
-        s_clean = s.strip()
-        if s_clean and s_clean not in seen:
-            unique_sentences.append(s_clean)
-            seen.add(s_clean)
-    return ". ".join(unique_sentences)
+def summarize_chunk(prompt_text):
+    payload = {"inputs": prompt_text}
+    response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=60)
+    try:
+        response.raise_for_status()
+        return response.json()[0]["summary_text"]
+    except Exception as e:
+        return f"Error: {e}"
 
 def summarize_text(text):
-    cleaned_text = deduplicate_text(text)
+    # Split long text into chunks
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    chunks = splitter.split_text(cleaned_text)
-    docs = [Document(page_content=chunk) for chunk in chunks]
+    chunks = splitter.split_text(text)
+    docs = [Document(page_content=c) for c in chunks]
 
+    # Prepare prompt
     prompt_template = """
-    You are an expert summarizer. Read the text carefully and summarize it including all important points. 
-    Make sure to include introduction, main points, and conclusion. Write in 4-6 clear sentences.
+    You are an expert summarizer. Read the text carefully and summarize it including all important points.
+    Include introduction, main points, and conclusion. Write in 4-6 clear sentences.
     {text}
     """
     prompt = PromptTemplate(input_variables=["text"], template=prompt_template)
-
     summarize_chain = load_summarize_chain(
-        llm,
+        llm=None,  # We bypass LangChain LLM since we use direct HF API calls
         chain_type="map_reduce",
         return_intermediate_steps=False,
         map_prompt=prompt,
         combine_prompt=prompt
     )
 
-    final_summary = summarize_chain.run(docs)
+    # Run summaries on each chunk
+    summaries = [summarize_chunk(c.page_content) for c in docs]
+    combined_summary = " ".join(summaries)
+    final_summary = summarize_chunk(combined_summary)
     return final_summary
 
 # Display chat history
