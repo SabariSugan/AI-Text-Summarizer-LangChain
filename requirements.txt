@@ -1,10 +1,6 @@
-streamlit
 langchain
-requests
+langchain_community
+streamlit
 python-dotenv
-tiktoken
-PyPDF2
 transformers
-torch
-
-
+huggingface-hub
