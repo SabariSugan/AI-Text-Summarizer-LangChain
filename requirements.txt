@@ -3,3 +3,5 @@ langchain
 langchain_community
 huggingface-hub 
 python-dotenv
+transformers
+
