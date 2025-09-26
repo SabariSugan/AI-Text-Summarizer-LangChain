@@ -79,3 +79,4 @@ if user_input := st.chat_input("Type the Text to Summarize"):
             summary = summarize_text(user_input)
             st.session_state.messages.append({"role": "assistant", "content": summary})
             st.write(summary)
+
