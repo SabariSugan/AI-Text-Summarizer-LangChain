@@ -1,6 +1,6 @@
+streamlit
 langchain
 langchain_community
-streamlit
-python-dotenv
-transformers
 huggingface-hub
+transformers
+python-dotenv
