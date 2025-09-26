@@ -2,5 +2,4 @@ streamlit
 langchain
 langchain_community
 huggingface-hub
-transformers
-python-dotenv
+requests
