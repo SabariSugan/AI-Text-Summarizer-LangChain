@@ -1,6 +1,7 @@
 streamlit
 langchain==0.0.274
 langchain_community==0.0.1
+pydantic==1.10.13
 huggingface-hub
 python-dotenv
 transformers
