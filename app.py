@@ -34,7 +34,7 @@ def summarize_text(text):
     return response.choices[0].message["content"]
 
 
--
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -50,3 +50,4 @@ if user_input := st.chat_input("Type text to summarize"):
             summary = summarize_text(user_input)
             st.session_state.messages.append({"role": "assistant", "content": summary})
             st.write(summary)
+
