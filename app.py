@@ -7,7 +7,7 @@ from langchain.docstore.document import Document
 import requests
 
 HF_API_KEY = st.secrets["HF_API_KEY"]
-API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
+API_URL = "https://api-inference.huggingface.co/models/google/pegasus-xsum"
 
 class HF_API_LLM(LLM):
     def _call(self, prompt: str, stop=None) -> str:
@@ -87,3 +87,4 @@ if user_input := st.chat_input("Type the text to summarize"):
             summary = summarize_text(user_input)
             st.session_state.messages.append({"role": "assistant", "content": summary})
             st.write(summary)
+
