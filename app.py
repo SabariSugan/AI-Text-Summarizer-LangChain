@@ -1,5 +1,5 @@
 import streamlit as st
-from langchain.llms.base import LLM
+from langchain_core.language_models.llms import LLM
 from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -79,4 +79,5 @@ if user_input := st.chat_input("Type the Text to Summarize"):
             summary = summarize_text(user_input)
             st.session_state.messages.append({"role": "assistant", "content": summary})
             st.write(summary)
+
 
