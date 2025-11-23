@@ -1,6 +1,6 @@
 import streamlit as st
 from groq import Groq
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableSequence
 
@@ -48,3 +48,4 @@ if user_input := st.chat_input("Type text to summarize"):
             summary = chain.invoke({"text": user_input})
             st.session_state.messages.append({"role": "assistant", "content": summary})
             st.write(summary)
+
