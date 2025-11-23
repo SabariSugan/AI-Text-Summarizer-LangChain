@@ -1,34 +1,31 @@
 import streamlit as st
+from groq import Groq
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_groq import ChatGroq
-from langchain_core.output_parsers import StrOutputParser
 
 st.set_page_config(page_title="AI Summarizer", layout="wide")
 st.title("AI Summarizer")
 
-# LangChain Groq LLM wrapper
-llm = ChatGroq(
-    groq_api_key=st.secrets["GROQ_API_KEY"],
-    model_name="llama3-70b-8192",
-    temperature=0.2,
-)
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# LangChain prompt
-prompt = ChatPromptTemplate.from_template("""
+prompt_template = ChatPromptTemplate.from_template("""
 Summarize the following text into 4–6 clear sentences.
-Include an introduction, main ideas, and a conclusion.
+Include an introduction, key ideas, and a conclusion.
 
 Text:
 {text}
 """)
 
-# LangChain pipeline
-chain = prompt | llm | StrOutputParser()
-
 def summarize_text(text):
-    return chain.invoke({"text": text})
+    prompt_str = prompt_template.format(text=text).to_string()
 
-# Streamlit UI
+    response = client.chat.completions.create(
+        model="llama3-70b-8192",
+        messages=[{"role": "user", "content": prompt_str}],
+        temperature=0.2,
+    )
+
+    return response.choices[0].message["content"]
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
