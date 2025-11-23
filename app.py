@@ -10,20 +10,16 @@ client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 prompt_template = ChatPromptTemplate.from_template("""
 Summarize the following text into 4–6 clear sentences.
-Include an introduction, the main ideas, and a conclusion.
+Include an introduction, main ideas, and a conclusion.
 
 Text:
 {text}
 """)
 
-
 def summarize_text(text):
-   
-    prompt_value = prompt_template.format(text=text)
+  
+    prompt_str = prompt_template.format(text=text).text
     
-
-    prompt_str = prompt_value.to_messages()[0]["content"]
-
 
     response = client.chat.completions.create(
         model="llama3-70b-8192",
@@ -32,8 +28,6 @@ def summarize_text(text):
     )
 
     return response.choices[0].message["content"]
-
-
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -50,4 +44,3 @@ if user_input := st.chat_input("Type text to summarize"):
             summary = summarize_text(user_input)
             st.session_state.messages.append({"role": "assistant", "content": summary})
             st.write(summary)
-
