@@ -1,38 +1,7 @@
 import streamlit as st
-from langchain.llms.base import LLM
-from langchain.prompts import PromptTemplate
-from langchain.chains.summarize import load_summarize_chain
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.docstore.document import Document
-import requests
+from groq import Groq
 
-HF_API_KEY = st.secrets["HF_API_KEY"]
-API_URL = "https://api-inference.huggingface.co/models/google/pegasus-xsum"
-
-class HF_API_LLM(LLM):
-    def _call(self, prompt: str, stop=None) -> str:
-        headers = {"Authorization": f"Bearer {HF_API_KEY}"}
-        try:
-            response = requests.post(
-                API_URL,
-                headers=headers,
-                json={"inputs": prompt},
-                timeout=60
-            )
-            response.raise_for_status()
-            return response.json()[0]["summary_text"]
-        except Exception as e:
-            return f"Error generating summary: {e}"
-
-    @property
-    def _identifying_params(self):
-        return {"model": "facebook/bart-large-cnn"}
-
-    @property
-    def _llm_type(self):
-        return "huggingface_api"
-
-llm = HF_API_LLM()
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 st.set_page_config(page_title="AI Summarizer", layout="wide")
 st.title("AI Summarizer")
@@ -40,40 +9,19 @@ st.title("AI Summarizer")
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-def deduplicate_text(text):
-    sentences = text.split(". ")
-    seen = set()
-    unique_sentences = []
-    for s in sentences:
-        cleaned = s.strip()
-        if cleaned and cleaned not in seen:
-            unique_sentences.append(cleaned)
-            seen.add(cleaned)
-    return ". ".join(unique_sentences)
-
 def summarize_text(text):
-    cleaned = deduplicate_text(text)
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    chunks = splitter.split_text(cleaned)
-    docs = [Document(page_content=c) for c in chunks]
-
-    template = """
-You are an expert summarizer. Read the text carefully and summarize it including all important points.
-Make sure to include introduction, main points, and conclusion. Write in 4–6 clear sentences.
-
+    prompt = f"""
+Summarize the following text into 4–6 clear sentences.
+Include intro, main points, and a conclusion.
 Text:
 {text}
 """
-    prompt = PromptTemplate(input_variables=["text"], template=template)
-
-    chain = load_summarize_chain(
-        llm,
-        chain_type="map_reduce",
-        map_prompt=prompt,
-        combine_prompt=prompt
+    response = client.chat.completions.create(
+        model="llama-3.1-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.2
     )
-
-    return chain.run(docs)
+    return response.choices[0].message["content"]
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
@@ -87,4 +35,3 @@ if user_input := st.chat_input("Type the text to summarize"):
             summary = summarize_text(user_input)
             st.session_state.messages.append({"role": "assistant", "content": summary})
             st.write(summary)
-
