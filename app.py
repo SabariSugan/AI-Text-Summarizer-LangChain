@@ -6,7 +6,7 @@ from langchain_core.output_parsers import StrOutputParser
 st.set_page_config(page_title="AI Summarizer", layout="wide")
 st.title("AI Summarizer")
 
-# UPDATED MODEL (llama3.3 — current Groq model)
+
 llm = ChatGroq(
     groq_api_key=st.secrets["GROQ_API_KEY"],
     model_name="llama-3.3-70b-versatile",
@@ -44,3 +44,4 @@ if user_input := st.chat_input("Type text to summarize"):
                 summary = f"Error summarizing text: {e}"
             st.session_state.messages.append({"role": "assistant", "content": summary})
             st.write(summary)
+
