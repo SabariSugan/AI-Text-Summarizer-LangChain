@@ -1,7 +1,7 @@
-streamlit 
-langchain
+streamlit
+langchain==0.0.274
 langchain_community
-huggingface-hub 
+huggingface-hub
 python-dotenv
 transformers
-
+requests
