@@ -1,22 +1,27 @@
 import streamlit as st
 from groq import Groq
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 st.set_page_config(page_title="AI Summarizer", layout="wide")
 st.title("AI Summarizer")
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-prompt_template = ChatPromptTemplate.from_template("""
+# Use PromptTemplate (STRING-BASED, works on Python 3.13)
+prompt_template = PromptTemplate(
+    input_variables=["text"],
+    template="""
 Summarize the following text into 4–6 clear sentences.
-Include an introduction, key ideas, and a conclusion.
+Include an introduction, main points, and a conclusion.
 
 Text:
 {text}
-""")
+"""
+)
 
 def summarize_text(text):
-    prompt_str = prompt_template.format(text=text).to_string()
+    # Generate final string prompt
+    prompt_str = prompt_template.format(text=text)
 
     response = client.chat.completions.create(
         model="llama3-70b-8192",
@@ -25,6 +30,7 @@ def summarize_text(text):
     )
 
     return response.choices[0].message["content"]
+
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
