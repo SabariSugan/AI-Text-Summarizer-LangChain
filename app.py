@@ -1,19 +1,19 @@
 import streamlit as st
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
-from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 st.set_page_config(page_title="AI Summarizer", layout="wide")
 st.title("AI Summarizer")
 
-# LangChain Groq LLM
+# LangChain Groq LLM wrapper
 llm = ChatGroq(
     groq_api_key=st.secrets["GROQ_API_KEY"],
     model_name="llama3-70b-8192",
     temperature=0.2,
 )
 
-# LangChain Prompt Template
+# LangChain prompt
 prompt = ChatPromptTemplate.from_template("""
 Summarize the following text into 4–6 clear sentences.
 Include an introduction, main ideas, and a conclusion.
